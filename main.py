@@ -20,7 +20,7 @@ rows = run_query(f'SELECT * FROM "{sheet_url}"')
 #Converting google sheet to pandas Data Frame
 df = pd.DataFrame(rows)
 
-st.header("517 - Visconde de Albuquerque")
+st.header("EF 517")
 
 st.sidebar.header('Selecione os filtros')
 function = st.sidebar.multiselect(
@@ -54,26 +54,28 @@ combos_gen = df[df["Função"]=="Balconista"].sort_values(by="Combos")
 fig_combos = px.bar(
     combos_gen,
     title="<b>Combos L3P2 por Colaborador</b>",
-    x="Combos",
-    y="Colaborador",
-    color_discrete_sequence=["#FECB52"]*len(combos_gen)
+    y="Combos",
+    x="Colaborador",
+    color_discrete_sequence=["#FECB52"]*len(combos_gen),
 )
 fig_combos.update_layout(
     plot_bgcolor ="rgba(0,0,0,0)",
-    xaxis=dict(title="Nº de combos")
+    xaxis=dict(title="Colaborador"),
+    yaxis = dict(title="Nº de Combos")
 )
 be_better = df[df["Função"]=="Caixa"].sort_values(by="BeBetter")
 
 fig_bb = px.bar(
     be_better,
     title="<b>Marca própria por Colaborador</b>",
-    x="BeBetter",
-    y="Colaborador",
+    y="BeBetter",
+    x="Colaborador",
     color_discrete_sequence=["#FF9900"]*len(be_better)
 )
 fig_bb.update_layout(
     plot_bgcolor ="rgba(0,0,0,0)",
-    xaxis=dict(title="Nº de combos")
+    xaxis=dict(title="Colaborador"),
+    yaxis = dict(title="Nº de itens Be Better")
 )
 df_selection = df_selection.sort_values(by="Desafio")
 fig_desafio = px.bar(
