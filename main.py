@@ -5,7 +5,7 @@ import plotly_express as px
 import plotly.graph_objects as go
 import datetime
 
-initial_day = datetime.datetime(2022,6,7)
+initial_day = datetime.datetime.today().replace(day=1)
 current_day = datetime.datetime.today()
 days = (current_day - initial_day).days +1
 
