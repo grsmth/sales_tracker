@@ -35,9 +35,10 @@ ts_df['_0'] = ts_df['_0'].dt.date
 
 #Title
 st.header("EF 517")
+st.subheader("Destaques")
 
 #V0 chart
-df_selection = df.sort_values(by="V0")
+df_selection = df.sort_values(by="V0",ignore_index=True, ascending=False)
 fig_zero = px.bar(
     df_selection,
     title="<b>V0</b>",
@@ -50,7 +51,7 @@ fig_zero.update_layout(
     xaxis=dict(title="V0 em R$")
 )
 #Combos chart
-df_combos_gen = df_selection[df_selection["Função"]=="Balconista"].sort_values(by="Combos")
+df_combos_gen = df_selection[df_selection["Função"]=="Balconista"].sort_values(by="Combos",ignore_index=True, ascending=False)
 fig_combos = px.bar(
     df_combos_gen,
     title="<b>Combos L3P2</b>",
@@ -71,7 +72,7 @@ fig_combos.update_layout(
     yaxis = dict(title="Nº de Combos")
 )
 #Be Better chart
-df_be_better = df_selection[df_selection["Função"]=="Caixa"].sort_values(by="BeBetter")
+df_be_better = df_selection[df_selection["Função"]=="Caixa"].sort_values(by="BeBetter",ignore_index=True, ascending=False)
 fig_bb = px.bar(
     df_be_better,
     title="<b>Marca própria por Colaborador</b>",
@@ -92,8 +93,8 @@ fig_bb.update_layout(
     yaxis = dict(title="Nº de itens Be Better")
 )
 #Desafio chart
-df_selection = df_selection.sort_values(by="Desafio")
-df_desafio = df_selection[df_selection["Função"]!="Outros"].sort_values(by="Desafio")
+df_desafio = df_selection.sort_values(by="Desafio")
+df_desafio = df_desafio[df_desafio["Função"]!="Outros"].sort_values(by="Desafio",ignore_index=True, ascending=False)
 fig_desafio = px.bar(
     df_desafio,
     title="<b>Fatiamento estratégico</b>",
@@ -115,15 +116,34 @@ fig_desafio.update_layout(
 #Frequency chart
 fig_frequency = px.histogram(ts_df, x="_0", color="Colaborador", nbins=daysInMonth,
     title="<b>Frequência</b>",
-    labels={"_0":"Dia"})
+    labels={"_0":"Dia"},
+    color_discrete_sequence=px.colors.qualitative.Vivid)
 fig_frequency.update_layout(
     plot_bgcolor ="rgba(0,0,0,0)"
 )
 
-st.plotly_chart(fig_combos)
-st.plotly_chart(fig_zero)
-st.plotly_chart(fig_desafio)
-st.plotly_chart(fig_frequency)
+#KPI's
+kpi1, kpi2, kpi3 = st.columns(3)
+kpi1.metric(
+    label = "V0: {}".format(df_selection["Colaborador"][0]),
+    value = df_selection["V0"][0],
+    delta = "{:0.2f}".format(df_selection["V0"][0]/df_selection["V0"][1]),
+)
+kpi2.metric(
+    label = "Combos: {}".format(df_combos_gen["Colaborador"][0]),
+    value = df_combos_gen["Combos"][0],
+    delta = "{:0.2f}".format(df_combos_gen["Combos"][0]/df_combos_gen["Combos"][1])
+)
+kpi3.metric(
+    label = "Desfio: {}".format(df_desafio["Colaborador"][0]),
+    value = df_desafio["Desafio"][0],
+    delta = "{:0.2f}".format(df_desafio["Desafio"][0]/df_desafio["Desafio"][1])
+)
+left_column , right_column = st.columns(2)
+left_column.plotly_chart(fig_combos)
+left_column.plotly_chart(fig_zero)
+right_column.plotly_chart(fig_desafio)
+right_column.plotly_chart(fig_frequency)
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
