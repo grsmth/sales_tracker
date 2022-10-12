@@ -4,10 +4,12 @@ from gsheetsdb import connect
 import plotly_express as px
 import plotly.graph_objects as go
 import datetime
+import calendar
 
 initial_day = datetime.datetime.today().replace(day=1)
 current_day = datetime.datetime.today()
 days = (current_day - initial_day).days +1
+daysInMonth = calendar.monthrange(initial_day.year, initial_day.month)[1]
 
 st.set_page_config(page_title="EF 517",
      page_icon="chart_with_upwards_trend",
@@ -22,38 +24,23 @@ def run_query(query):
     rows = rows.fetchall()
     return rows
 sheet_url = st.secrets["public_gsheets_url"]
+sheet2_url = st.secrets["public_gsheets2_url"]
 rows = run_query(f'SELECT * FROM "{sheet_url}"')
+time_serie = run_query(f'SELECT * FROM "{sheet2_url}"')
 #Converting google sheet to pandas Data Frame
 df = pd.DataFrame(rows)
+ts_df = pd.DataFrame(time_serie)
+#Processing 2nd sheet
+ts_df['_0'] = ts_df['_0'].dt.date
+
 #Title
 st.header("EF 517")
 
-
-
-#Sidebar elements
-st.sidebar.header('Selecione os filtros:')
-function = st.sidebar.multiselect(
-    "Selecione a função:",
-    options=df["Função"].unique(),
-    default=df["Função"].unique()
-)
-time = st.sidebar.multiselect(
-    "Selecione o horário:",
-    options=df["Horário"].unique(),
-    default=df["Horário"].unique()
-)
-st.sidebar.header('Defina as metas:')
-meta_combos = st.sidebar.slider(label="Meta de Combos", max_value=10, min_value=1, value=6)
-meta_bebetter = st.sidebar.slider(label="Meta de Be Better", max_value=10, min_value=1, value=5)
-meta_desafio = st.sidebar.slider(label="Meta de Desafio", max_value=10, min_value=1, value=2)
-df_selection = df.query(
-    "Função == @function & Horário == @time"
-)
 #V0 chart
-df_selection = df_selection.sort_values(by="V0")
+df_selection = df.sort_values(by="V0")
 fig_zero = px.bar(
     df_selection,
-    title="<b>V0 por Colaborador</b>",
+    title="<b>V0</b>",
     x="V0",
     y="Colaborador",
     color_discrete_sequence=["#0083B8"]*len(df_selection)
@@ -66,12 +53,12 @@ fig_zero.update_layout(
 df_combos_gen = df_selection[df_selection["Função"]=="Balconista"].sort_values(by="Combos")
 fig_combos = px.bar(
     df_combos_gen,
-    title="<b>Combos L3P2 por Colaborador</b>",
+    title="<b>Combos L3P2</b>",
     y="Combos",
     x="Colaborador",
     color_discrete_sequence=["#FECB52"]*len(df_combos_gen),
 )
-fig_combos.add_trace(go.Scatter(y=[meta_combos*days for i in range(len(df_combos_gen.Colaborador))],
+fig_combos.add_trace(go.Scatter(y=[6*days for i in range(len(df_combos_gen.Colaborador))],
     x=df_combos_gen.Colaborador,
     mode="lines",
     showlegend=False,
@@ -92,7 +79,7 @@ fig_bb = px.bar(
     x="Colaborador",
     color_discrete_sequence=["#FF9900"]*len(df_be_better)
 )
-fig_bb.add_trace(go.Scatter(y=[meta_bebetter*days for i in range(len(df_be_better.Colaborador))],
+fig_bb.add_trace(go.Scatter(y=[6*days for i in range(len(df_be_better.Colaborador))],
     x=df.Colaborador,
     mode="lines",
     showlegend=False,
@@ -109,12 +96,12 @@ df_selection = df_selection.sort_values(by="Desafio")
 df_desafio = df_selection[df_selection["Função"]!="Outros"].sort_values(by="Desafio")
 fig_desafio = px.bar(
     df_desafio,
-    title="<b>Desafio do dia por Colaborador</b>",
+    title="<b>Fatiamento estratégico</b>",
     x="Desafio",
     y="Colaborador",
     color_discrete_sequence=["#782AB6"]*len(df_desafio)
 )
-fig_desafio.add_trace(go.Scatter(x=[meta_desafio*days for i in range(len(df_desafio.Colaborador))],
+fig_desafio.add_trace(go.Scatter(x=[3*days for i in range(len(df_desafio.Colaborador))],
     y=df_desafio.Colaborador,
     mode="lines",
     showlegend=False,
@@ -125,12 +112,18 @@ fig_desafio.update_layout(
     plot_bgcolor ="rgba(0,0,0,0)",
     xaxis=dict(title="Nº de itens vendidos")
 )
+#Frequency chart
+fig_frequency = px.histogram(ts_df, x="_0", color="Colaborador", nbins=daysInMonth,
+    title="<b>Frequência</b>",
+    labels={"_0":"Dia"})
+fig_frequency.update_layout(
+    plot_bgcolor ="rgba(0,0,0,0)"
+)
 
-left_column , right_column = st.columns(2)
-left_column.plotly_chart(fig_combos, use_container_width=True)
-left_column.plotly_chart(fig_bb, use_container_width=True)
-right_column.plotly_chart(fig_zero, use_container_width=True)
-right_column.plotly_chart(fig_desafio, use_container_width=True)
+st.plotly_chart(fig_combos)
+st.plotly_chart(fig_zero)
+st.plotly_chart(fig_desafio)
+st.plotly_chart(fig_frequency)
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
