@@ -29,7 +29,7 @@ ts_df = pd.DataFrame(time_series)
 ts_df['_0'] = ts_df['_0'].dt.date
 def main_page():
     #Title
-    st.header("EF 517")
+    st.header("EF 7419")
     st.subheader(":trophy: Destaques" )
     #V0 chart
     df_selection = df.sort_values(by="V0",ignore_index=True, ascending=False)
